@@ -28,20 +28,16 @@ import com.kevadiyakrunalk.recycleadapter.RxGenericsDataSource;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
-import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
 public class AdapterFragment extends MvvmFragment<FragmentAdapterBinding, AdapterFragmentViewModel> {
 
-    private List<Object> mData;
-    private RxGenericsDataSource<Object> rxDataSource;
-    //private List<Pair<Object, List<Object>>> mData;
-    //private RxGenericsDataSource<Pair<Object, List<Object>>> rxDataSource;
+    //private List<Object> mData;
+    //private RxGenericsDataSource<Object> rxDataSource;
+    private List<Pair<Object, List<Object>>> mData;
+    private RxGenericsDataSource<Pair<Object, List<Object>>> rxDataSource;
 
     @NonNull
     @Override
@@ -59,7 +55,8 @@ public class AdapterFragment extends MvvmFragment<FragmentAdapterBinding, Adapte
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setHasOptionsMenu(true);
-        setData1();
+        //setData1();
+        setData();
 
         LayoutInflater inflater = LayoutInflater.from(getActivity());
         View view = inflater.inflate(R.layout.item_text, null);
@@ -68,12 +65,6 @@ public class AdapterFragment extends MvvmFragment<FragmentAdapterBinding, Adapte
         rxDataSource.repeat(1)
         .<RxGenericsAdapter.MyBaseViewHolder>bindRecyclerView(
                  RxGenericsAdapter.with(mData, BR.item)
-                         .layoutHandler(new RxGenericsAdapter.LayoutHandler() {
-                             @Override
-                             public int getItemLayout(RxGenericsAdapter.ItemPosition detail) {
-                                 return 0;
-                             }
-                         })
                 .map(Header.class, R.layout.item_header)
                 .map(Items.class, R.layout.item_text)
                 .onSwapMenuListener(R.id.container, -0.8f, 0.8f)
@@ -85,12 +76,6 @@ public class AdapterFragment extends MvvmFragment<FragmentAdapterBinding, Adapte
                         Toast.makeText(getActivity(), "Click Button", Toast.LENGTH_SHORT).show();
                     }
                 }, R.id.container, R.id.button1)
-                .onLoadMoreListener(new RxGenericsAdapter.OnLoadMoreListener() {
-                    @Override
-                    public boolean onLoadMore(int size) {
-                        return false;
-                    }
-                })
                 //.into(view.getMeasuredHeight(), getBinding().list, new LinearLayoutManager(getActivity())))
                 .into(0, getBinding().list, new LinearLayoutManager(getActivity())))
         .subscribe(viewHolder -> {
@@ -143,7 +128,7 @@ public class AdapterFragment extends MvvmFragment<FragmentAdapterBinding, Adapte
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                /*rxDataSource.updateDataSet(mData) //base items should remain the same
+                rxDataSource.updateDataSet(mData) //base items should remain the same
                         .flatMap(new Func1<Pair<Object, List<Object>>, Observable<Pair<Object, List<Object>>>>() {
                             @Override
                             public Observable<Pair<Object, List<Object>>> call(Pair<Object, List<Object>> objectListPair) {
@@ -174,7 +159,7 @@ public class AdapterFragment extends MvvmFragment<FragmentAdapterBinding, Adapte
                                 return flag;
                             }
                         })
-                        .updateAdapter();*/
+                        .updateAdapter();
                         /*.filter(new Func1<Object, Boolean>() {
                             @Override
                             public Boolean call(Object s) {
@@ -195,13 +180,11 @@ public class AdapterFragment extends MvvmFragment<FragmentAdapterBinding, Adapte
     public void setData1() {
         final String groupItems = "abcdefghijklmnopqrstuvwxyz";
         mData = new LinkedList<>();
-        int sectionCount = 1;
         for (int i = 0; i < groupItems.length(); i++) {
-            final long groupId = i + 1;
-            final boolean isSection = (groupItems.charAt(i) == '|');
-            final String groupText = isSection ? ("Section " + sectionCount) : Character.toString(groupItems.charAt(i));
-            final Header group = new Header(groupId, isSection, groupText);
-            mData.add(group);
+            final boolean isSection = false;
+            final String groupText = Character.toString(groupItems.charAt(i));
+            final Header group = new Header(i, isSection, groupText);
+            //mData.add(group);
         }
     }
 
@@ -211,22 +194,16 @@ public class AdapterFragment extends MvvmFragment<FragmentAdapterBinding, Adapte
         final String childItems = "abc";
 
         mData = new LinkedList<>();
-        int sectionCount = 1;
         for (int i = 0; i < groupItems.length(); i++) {
-            final long groupId = i;
-            final boolean isSection = (groupItems.charAt(i) == '|');
-            final String groupText = isSection ? ("Section " + sectionCount) : Character.toString(groupItems.charAt(i));
-            final Header group = new Header(groupId, isSection, groupText);
+            final boolean isSection = true;
+            final String groupText = Character.toString(groupItems.charAt(i));
+            final Header group = new Header(i, isSection, groupText);
             final List<Object> children = new ArrayList<>();
 
-            if (isSection) {
-                sectionCount += 1;
-            } else {
-                for (int j = 0; j < childItems.length(); j++) {
-                    final long childId = group.generateNewChildId();
-                    final String childText = Character.toString(childItems.charAt(j));
-                    children.add(new Items(childId, childText));
-                }
+            for (int j = 0; j < childItems.length(); j++) {
+                final long childId = group.generateNewChildId();
+                final String childText = Character.toString(childItems.charAt(j));
+                children.add(new Items(childId, childText));
             }
 
             mData.add(new Pair<>(group, children));

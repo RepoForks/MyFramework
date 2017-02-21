@@ -7,14 +7,14 @@ public class Header extends GroupData {
     private long mId;
     private int mPinned;
     private String text;
-    private boolean isSection;
+    private boolean isSectionHeader;
     private long mNextChildId;
 
     public Header(long id, boolean section, String txt) {
         mId = id;
         text = txt;
         mNextChildId = 0;
-        isSection = section;
+        isSectionHeader = section;
         mPinned = DataUtils.SWAP_NONE;
     }
     
@@ -28,7 +28,7 @@ public class Header extends GroupData {
 
     @Override
     public boolean isSectionHeader() {
-        return isSection;
+        return isSectionHeader;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class Header extends GroupData {
                 "mId=" + mId +
                 ", mPinned=" + mPinned +
                 ", text='" + text + '\'' +
-                ", isSection=" + isSection +
+                ", isSectionHeader=" + isSectionHeader +
                 ", mNextChildId=" + mNextChildId +
                 '}';
     }

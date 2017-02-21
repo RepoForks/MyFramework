@@ -64,8 +64,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right|center_vertical"
-                android:visibility="@{item.sectionHeader ? View.GONE : View.VISIBLE}"
-                android:padding="30dp"
+                android:visibility="@{item.isSectionHeader ? View.VISIBLE : View.GONE}"
+                android:paddingLeft="30dp"
+                android:paddingTop="30dp"
+                android:paddingBottom="30dp"
                 android:layout_marginRight="16dp"/>
 
         </FrameLayout>
