@@ -31,9 +31,11 @@ import com.kevadiyakrunalk.myframework.databinding.FragmentLocationBinding;
 import com.kevadiyakrunalk.myframework.navigators.LocationNavigator;
 import com.kevadiyakrunalk.myframework.viewmodels.LocationFragmentViewModel;
 import com.kevadiyakrunalk.rxlocation.ReactiveLocationProvider;
+import com.kevadiyakrunalk.rxpermissions.Permission;
 import com.kevadiyakrunalk.rxpermissions.PermissionResult;
 import com.kevadiyakrunalk.rxpermissions.RxPermissions;
 
+import java.util.HashMap;
 import java.util.List;
 
 import rx.Observable;
@@ -158,10 +160,10 @@ public class LocationFragment extends NavigatingMvvmFragment<LocationNavigator, 
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 RxPermissions.getInstance(getActivity())
-                        .checkMEachPermission(new PermissionResult() {
+                        .checkMPermission(new PermissionResult() {
                             @Override
-                            public void onPermissionResult(String permission, boolean granted) {
-                                if(granted) {
+                            public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
+                                if(status == Permission.GRANTED) {
                                     getViewModel().onStartGeofenceActivity();
                                     //getNavigator().navigateToGeofence();
                                 }
@@ -177,10 +179,10 @@ public class LocationFragment extends NavigatingMvvmFragment<LocationNavigator, 
                     Toast.makeText(getActivity(), "First you need to configure your API Key - see README.md", Toast.LENGTH_SHORT).show();
                 } else {
                     RxPermissions.getInstance(getActivity())
-                            .checkMEachPermission(new PermissionResult() {
+                            .checkMPermission(new PermissionResult() {
                                 @Override
-                                public void onPermissionResult(String permission, boolean granted) {
-                                    if(granted) {
+                                public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
+                                    if(status == Permission.GRANTED) {
                                         getViewModel().onStartPlacesActivity();
                                         //getNavigator().navigateToPlaces();
                                     }
@@ -194,10 +196,10 @@ public class LocationFragment extends NavigatingMvvmFragment<LocationNavigator, 
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 RxPermissions.getInstance(getActivity())
-                        .checkMEachPermission(new PermissionResult() {
+                        .checkMPermission(new PermissionResult() {
                             @Override
-                            public void onPermissionResult(String permission, boolean granted) {
-                                if(granted) {
+                            public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
+                                if(status == Permission.GRANTED) {
                                     getViewModel().onStartMockLocationActivity();
                                     //getNavigator().navigateToMockLocation();
                                 }
@@ -234,10 +236,10 @@ public class LocationFragment extends NavigatingMvvmFragment<LocationNavigator, 
     public void onStart() {
         super.onStart();
         RxPermissions.getInstance(getActivity())
-                .checkMEachPermission(new PermissionResult() {
+                .checkMPermission(new PermissionResult() {
                     @Override
-                    public void onPermissionResult(String permission, boolean granted) {
-                        if(granted) {
+                    public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
+                        if(status == Permission.GRANTED) {
                             lastKnownLocationSubscription = lastKnownLocationObservable
                                     .map(new Func1<Location, String>() {
                                         @Override

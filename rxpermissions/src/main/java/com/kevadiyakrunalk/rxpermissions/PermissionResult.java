@@ -1,5 +1,8 @@
 package com.kevadiyakrunalk.rxpermissions;
 
+import java.util.HashMap;
+import java.util.List;
+
 /**
  * The interface Permission result.
  */
@@ -7,8 +10,8 @@ public interface PermissionResult {
     /**
      * On permission result.
      *
-     * @param permission the permission
-     * @param granted    the granted
+     * @param status the status
+     * @param value  the value
      */
-    public void onPermissionResult(String permission, boolean granted);
+    void onPermissionResult(Permission status, HashMap<Permission, List<String>> value);
 }

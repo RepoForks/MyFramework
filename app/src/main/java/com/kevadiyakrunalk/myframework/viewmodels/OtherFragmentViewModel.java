@@ -1,6 +1,7 @@
 package com.kevadiyakrunalk.myframework.viewmodels;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.support.v4.content.ContextCompat;
@@ -12,6 +13,7 @@ import com.kevadiyakrunalk.commonutils.common.DrawableColorChange;
 import com.kevadiyakrunalk.commonutils.common.Logs;
 import com.kevadiyakrunalk.mvvmarchitecture.common.BaseViewModel;
 import com.kevadiyakrunalk.myframework.R;
+import com.kevadiyakrunalk.rxpermissions.Permission;
 import com.kevadiyakrunalk.rxpermissions.PermissionResult;
 import com.kevadiyakrunalk.rxpermissions.RxPermissions;
 import com.kevadiyakrunalk.rxphotopicker.PhotoInterface;
@@ -20,6 +22,8 @@ import com.kevadiyakrunalk.rxphotopicker.Sources;
 import com.kevadiyakrunalk.rxphotopicker.Transformers;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.List;
 
 import rx.functions.Action1;
 
@@ -27,11 +31,11 @@ import rx.functions.Action1;
  * Created by Krunal.Kevadiya on 24/10/16.
  */
 public class OtherFragmentViewModel extends BaseViewModel {
-    private Context context;
+    private Activity context;
     private Logs logs;
     private ImageView imageView;
 
-    public OtherFragmentViewModel(Context context, Logs logs) {
+    public OtherFragmentViewModel(Activity context, Logs logs) {
         this.context = context;
         this.logs = logs;
     }
@@ -54,49 +58,30 @@ public class OtherFragmentViewModel extends BaseViewModel {
     }
 
     public void onGalleryFile(View view) {
-        if(RxPermissions.getInstance(context).isMarshmallow()) {
-            RxPermissions.getInstance(context).checkMPermission(new PermissionResult() {
-                @Override
-                public void onPermissionResult(String permission, boolean granted) {
-                    if(granted) {
-                        RxPhotoPicker.getInstance(context)
-                                .pickSingleImage(Sources.GALLERY, Transformers.FILE, false, new PhotoInterface<File>() {
-                                    @Override
-                                    public void onPhotoResult(File file) {
-                                        logs.error("gallery", "File -> " + (file.length()/1024) + " KB");
-
-                                        new Compressor.Builder(context, context.getFilesDir().getPath())
-                                                .setMaxWidth(612.0f).setMaxHeight(816.0f).setQuality(80) //default option
-                                                .build().compressToFileAsObservable(file)
-                                                .subscribe(new Action1<File>() {
-                                                    @Override
-                                                    public void call(File file) {
-                                                        logs.error("Compressor", "File -> " + (file.length()/1024) + " KB");
-                                                    }
-                                                });
-                                    }
-                                }, context.getFilesDir());
-                    }
-                }
-            }, Manifest.permission.READ_EXTERNAL_STORAGE);
-        } else {
-            RxPhotoPicker.getInstance(context)
-                    .pickSingleImage(Sources.GALLERY, Transformers.FILE, false, new PhotoInterface<File>() {
-                        @Override
-                        public void onPhotoResult(File file) {
-                            logs.error("gallery", "File -> " + (file.length()/1024) + " KB");
-
-                            new Compressor.Builder(context, context.getFilesDir().getPath())
-                                    .setMaxWidth(612.0f).setMaxHeight(816.0f).setQuality(80) //default option
-                                    .build().compressToFileAsObservable(file)
-                                    .subscribe(new Action1<File>() {
+        RxPermissions.getInstance(context)
+                .checkMPermission(new PermissionResult() {
+                    @Override
+                    public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
+                        if(status == Permission.GRANTED) {
+                            RxPhotoPicker.getInstance(context)
+                                    .pickSingleImage(Sources.GALLERY, Transformers.FILE, false, new PhotoInterface<File>() {
                                         @Override
-                                        public void call(File file) {
-                                            logs.error("Compressor", "File -> " + (file.length()/1024) + " KB");
+                                        public void onPhotoResult(File file) {
+                                            logs.error("gallery", "File -> " + (file.length()/1024) + " KB");
+
+                                            new Compressor.Builder(context, context.getFilesDir().getPath())
+                                                    .setMaxWidth(612.0f).setMaxHeight(816.0f).setQuality(80) //default option
+                                                    .build().compressToFileAsObservable(file)
+                                                    .subscribe(new Action1<File>() {
+                                                        @Override
+                                                        public void call(File file) {
+                                                            logs.error("Compressor", "File -> " + (file.length()/1024) + " KB");
+                                                        }
+                                                    });
                                         }
-                                    });
+                                    }, context.getFilesDir());
                         }
-                    }, context.getFilesDir());
-        }
+                    }
+                }, Manifest.permission.READ_EXTERNAL_STORAGE);
     }
 }

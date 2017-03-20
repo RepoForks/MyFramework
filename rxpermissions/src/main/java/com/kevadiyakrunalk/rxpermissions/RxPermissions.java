@@ -2,273 +2,68 @@ package com.kevadiyakrunalk.rxpermissions;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import rx.Observable;
-import rx.Observable.Transformer;
-import rx.functions.Func1;
-import rx.subjects.PublishSubject;
 
 /**
  * The type Rx permissions.
  */
 public class RxPermissions {
     /**
-     * The constant TAG.
-     */
-    public static final String TAG = "RxPermissions";
-    /**
      * The S singleton.
      */
     static RxPermissions sSingleton;
+    private PermissionResult result;
+    private WeakReference<Activity> mActivityReference;
+
+    private boolean isDeniedRevoke;
+    private String[] deniedPermission;
+    private String[] revokedPermission;
 
     /**
      * Gets instance.
      *
-     * @param ctx the ctx
+     * @param activity the activity
      * @return the instance
      */
-    public static RxPermissions getInstance(Context ctx) {
+    public static RxPermissions getInstance(Activity activity) {
         if (sSingleton == null) {
             synchronized (RxPermissions.class) {
                 if (sSingleton == null) {
-                    sSingleton = new RxPermissions(ctx);
+                    sSingleton = new RxPermissions(activity);
                 }
             }
         }
         return sSingleton;
     }
 
-    private Context context;
-
-    // Contains all the current permission requests.
-    // Once granted or denied, they are removed from it.
-    private Map<String, PublishSubject<Permission>> mSubjects = new HashMap<>();
-
-    /**
-     * Instantiates a new Rx permissions.
-     *
-     * @param ctx the ctx
-     */
-    RxPermissions(Context ctx) {
-        context = ctx;
+    private RxPermissions(Activity activity) {
+        mActivityReference = new WeakReference<>(activity);
     }
 
-    /**
-     * Map emitted items from the source observable into {@code true} if permissions in parameters
-     * are granted, or {@code false} if not.
-     * <p>
-     * If one or several permissions have never been requested, invoke the related framework method
-     * to ask the user if he allows the permissions.
-     *
-     * @param permissions the permissions
-     * @return the transformer
-     */
-    public Transformer<Object, Boolean> ensure(final String... permissions) {
-        return o -> request(o, permissions)
-                // Transform Observable<Permission> to Observable<Boolean>
-                .buffer(permissions.length)
-                .flatMap(new Func1<List<Permission>, Observable<Boolean>>() {
-                    @Override
-                    public Observable<Boolean> call(List<Permission> permissions1) {
-                        if (permissions1.isEmpty()) {
-                            // Occurs during orientation change, when the subject receives onComplete.
-                            // In that case we don't want to propagate that empty list to the
-                            // subscriber, only the onComplete.
-                            return Observable.empty();
-                        }
-                        // Return true if all permissions are granted.
-                        for (Permission p : permissions1) {
-                            if (!p.granted) {
-                                return Observable.just(false);
-                            }
-                        }
-                        return Observable.just(true);
-                    }
-                });
-    }
-
-    /**
-     * Map emitted items from the source observable into {@link Permission} objects for each
-     * permission in parameters.
-     * <p>
-     * If one or several permissions have never been requested, invoke the related framework method
-     * to ask the user if he allows the permissions.
-     *
-     * @param permissions the permissions
-     * @return the transformer
-     */
-    public Transformer<Object, Permission> ensureEach(final String... permissions) {
-        return o -> request(o, permissions);
-    }
-
-    /**
-     * Request permissions immediately, <b>must be invoked during initialization phase
-     * of your application</b>.
-     *
-     * @param permissions the permissions
-     * @return the observable
-     */
-    public Observable<Boolean> request(final String... permissions) {
-        return Observable.just(null).compose(ensure(permissions));
-    }
-
-    /**
-     * Request permissions immediately, <b>must be invoked during initialization phase
-     * of your application</b>.
-     *
-     * @param permissions the permissions
-     * @return the observable
-     */
-    public Observable<Permission> requestEach(final String... permissions) {
-        return Observable.just(null).compose(ensureEach(permissions));
-    }
-
-    private Observable<Permission> request(final Observable<?> trigger, final String... permissions) {
-        if (permissions == null || permissions.length == 0) {
-            throw new IllegalArgumentException("RxPermissions.request/requestEach requires at least one input permission");
+    private void startPermissionActivity(String[] permissions) {
+        if(mActivityReference != null && mActivityReference.get() != null) {
+            Intent intent = new Intent(mActivityReference.get(), PermissionActivity.class);
+            intent.putExtra("permissions", permissions);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            mActivityReference.get().startActivity(intent);
         }
-        return oneOf(trigger, pending(permissions))
-                .flatMap(new Func1<Object, Observable<Permission>>() {
-                    @Override
-                    public Observable<Permission> call(Object o) {
-                        return request_(permissions);
-                    }
-                });
     }
 
-    private Observable<?> pending(final String... permissions) {
-        for (String p : permissions) {
-            if (!mSubjects.containsKey(p)) {
-                return Observable.empty();
-            }
+    public void startRevokePermissionActivity(String[] permissions) {
+        if(mActivityReference != null && mActivityReference.get() != null) {
+            Intent intent = new Intent(mActivityReference.get(), RevokePermissionActivity.class);
+            intent.putExtra("permissions", permissions);
+            intent.putExtra("package", mActivityReference.get().getPackageName());
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            mActivityReference.get().startActivity(intent);
         }
-        return Observable.just(null);
-    }
-
-    private Observable<?> oneOf(Observable<?> trigger, Observable<?> pending) {
-        if (trigger == null) {
-            return Observable.just(null);
-        }
-        return Observable.merge(trigger, pending);
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private Observable<Permission> request_(final String... permissions) {
-
-        List<Observable<Permission>> list = new ArrayList<>(permissions.length);
-        List<String> unrequestedPermissions = new ArrayList<>();
-
-        // In case of multiple permissions, we create a observable for each of them.
-        // At the end, the observables are combined to have a unique response.
-        for (String permission : permissions) {
-            if (isGranted(permission)) {
-                // Already granted, or not Android M
-                // Return a granted Permission object.
-                list.add(Observable.just(new Permission(permission, true)));
-                continue;
-            }
-
-            if (isRevoked(permission)) {
-                // Revoked by a policy, return a denied Permission object.
-                list.add(Observable.just(new Permission(permission, false)));
-                continue;
-            }
-
-            PublishSubject<Permission> subject = mSubjects.get(permission);
-            // Create a new subject if not exists
-            if (subject == null) {
-                unrequestedPermissions.add(permission);
-                subject = PublishSubject.create();
-                mSubjects.put(permission, subject);
-            }
-
-            list.add(subject);
-        }
-
-        if (!unrequestedPermissions.isEmpty()) {
-            startPermissionActivity(unrequestedPermissions
-                    .toArray(new String[unrequestedPermissions.size()]));
-        }
-        return Observable.concat(Observable.from(list));
-    }
-
-    /**
-     * Invokes Activity.shouldShowRequestPermissionRationale and wraps
-     * the returned value in an observable.
-     * <p>
-     * In case of multiple permissions, only emits true if
-     * Activity.shouldShowRequestPermissionRationale returned true for
-     * all revoked permissions.
-     * <p>
-     * You shouldn't call this method if all permissions have been granted.
-     * <p>
-     * For SDK &lt; 23, the observable will always emit false.
-     *
-     * @param activity    the activity
-     * @param permissions the permissions
-     * @return the observable
-     */
-    public Observable<Boolean> shouldShowRequestPermissionRationale(final Activity activity, final String... permissions) {
-        if (!isMarshmallow()) {
-            return Observable.just(false);
-        }
-        return Observable.just(shouldShowRequestPermissionRationale_(activity, permissions));
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private boolean shouldShowRequestPermissionRationale_(final Activity activity, final String... permissions) {
-        for (String p : permissions) {
-            if (!isGranted(p) && !activity.shouldShowRequestPermissionRationale(p)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Start permission activity.
-     *
-     * @param permissions the permissions
-     */
-    void startPermissionActivity(String[] permissions) {
-        Intent intent = new Intent(context, PermissionActivity.class);
-        intent.putExtra("permissions", permissions);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
-    }
-
-    /**
-     * Returns true if the permission is already granted.
-     * <p>
-     * Always true if SDK &lt; 23.
-     *
-     * @param permission the permission
-     * @return the boolean
-     */
-    public boolean isGranted(String permission) {
-        return !isMarshmallow() || isGranted_(permission);
-    }
-
-    /**
-     * Returns true if the permission has been revoked by a policy.
-     * <p>
-     * Always false if SDK &lt; 23.
-     *
-     * @param permission the permission
-     * @return the boolean
-     */
-    public boolean isRevoked(String permission) {
-        return isMarshmallow() && isRevoked_(permission);
     }
 
     /**
@@ -281,13 +76,36 @@ public class RxPermissions {
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    private boolean isGranted_(String permission) {
-        return context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
+    private boolean isGranted(String[] permissions) {
+        if(mActivityReference != null && mActivityReference.get()!= null) {
+            for (String permission : permissions) {
+                if (mActivityReference.get().checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED)
+                    return false;
+            }
+            return true;
+        }
+        return false;
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    private boolean isRevoked_(String permission) {
-        return context.getPackageManager().isPermissionRevokedByPolicy(permission, context.getPackageName());
+    private boolean isRationale(String[] permissions) {
+        if(mActivityReference != null && mActivityReference.get()!= null) {
+            for (String permission : permissions) {
+                if (!isGranted(permission) && mActivityReference.get().shouldShowRequestPermissionRationale(permission))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean isGranted(String permission) {
+        return mActivityReference != null && mActivityReference.get() != null && mActivityReference.get().checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean isRationale(String permission) {
+        return mActivityReference != null && mActivityReference.get() != null && mActivityReference.get().shouldShowRequestPermissionRationale(permission);
     }
 
     /**
@@ -298,74 +116,105 @@ public class RxPermissions {
      * @param grantResults the grant results
      */
     void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        for (int i = 0, size = permissions.length; i < size; i++) {
-            // Find the corresponding subject
-            PublishSubject<Permission> subject = mSubjects.get(permissions[i]);
-            if (subject == null) {
-                // No subject found
-                throw new IllegalStateException("RxPermissions.onRequestPermissionsResult invoked but didn't find the corresponding permission request.");
-            }
-            mSubjects.remove(permissions[i]);
-            boolean granted = grantResults[i] == PackageManager.PERMISSION_GRANTED;
-            subject.onNext(new Permission(permissions[i], granted));
-            subject.onCompleted();
+        if(isDeniedRevoke) {
+            isDeniedRevoke = false;
+            startRevokePermissionActivity(revokedPermission);
+        } else if(revokedPermission != null && deniedPermission != null)
+            checkResult(getMargePermission());
+        else
+            checkResult(permissions);
+    }
+
+    /**
+     * Check m permission.
+     *
+     * @param result          the result
+     * @param allPermission the param permission
+     */
+    public void checkMPermission(PermissionResult result, String... allPermission) {
+        this.result = result;
+        isDeniedRevoke = false;
+        if(isMarshmallow()) {
+            if(isGranted(allPermission) || isRationale(allPermission))
+                checkResult(allPermission);
+            else
+                startPermissionActivity(allPermission);
+        } else
+            checkResult(allPermission);
+    }
+
+    public void checkMDeniedPermission(PermissionResult result, List<String> deniedPermission) {
+        this.result = result;
+        isDeniedRevoke = false;
+        if(isMarshmallow())
+            startPermissionActivity(deniedPermission.toArray(new String[deniedPermission.size()]));
+        else
+            checkResult(deniedPermission.toArray(new String[deniedPermission.size()]));
+    }
+
+    public void checkMRevokedPermission(PermissionResult result, List<String> revokedPermission) {
+        this.result = result;
+        isDeniedRevoke = false;
+        if(isMarshmallow())
+            startRevokePermissionActivity(revokedPermission.toArray(new String[revokedPermission.size()]));
+        else
+            checkResult(revokedPermission.toArray(new String[revokedPermission.size()]));
+    }
+
+    public void checkMDeniedRevokedPermission(PermissionResult result, List<String> deniedPermission, List<String> revokedPermission) {
+        this.result = result;
+        isDeniedRevoke = true;
+        this.deniedPermission = deniedPermission.toArray(new String[deniedPermission.size()]);
+        this.revokedPermission = revokedPermission.toArray(new String[revokedPermission.size()]);
+        if(isMarshmallow())
+            startPermissionActivity(deniedPermission.toArray(new String[deniedPermission.size()]));
+        else
+            checkResult(getMargePermission());
+    }
+
+    private void checkResult(String... paramPermission) {
+        HashMap<Permission, List<String>> hashMap = new HashMap<>();
+        List<String> listGranted = new ArrayList<>();
+        List<String> listDenied = new ArrayList<>();
+        List<String> listRevoked = new ArrayList<>();
+        for (String p : paramPermission) {
+            if(isGranted(p))
+                listGranted.add(p);
+            else if(!isRationale(p))
+                listDenied.add(p);
+            else
+                listRevoked.add(p);
+        }
+        hashMap.put(Permission.GRANTED, listGranted);
+        hashMap.put(Permission.DENIED, listDenied);
+        hashMap.put(Permission.REVOKED, listRevoked);
+        if(result != null) {
+            if(listGranted.size() > 0 && listDenied.size() > 0 && listRevoked.size() > 0)
+                result.onPermissionResult(Permission.All, hashMap);
+            else if(listGranted.size() > 0 && listDenied.size() > 0 && listRevoked.size() <= 0)
+                result.onPermissionResult(Permission.GRANTED_DENIED, hashMap);
+            else if(listGranted.size() > 0 && listDenied.size() <= 0 && listRevoked.size() > 0)
+                result.onPermissionResult(Permission.GRANTED_REVOKED, hashMap);
+            else if(listGranted.size() <= 0 && listDenied.size() > 0 && listRevoked.size() > 0)
+                result.onPermissionResult(Permission.DENIED_REVOKED, hashMap);
+            else if(listGranted.size() > 0 && listDenied.size() <= 0 && listRevoked.size() <= 0)
+                result.onPermissionResult(Permission.GRANTED, hashMap);
+            else if(listGranted.size() <= 0 && listDenied.size() > 0 && listRevoked.size() <= 0)
+                result.onPermissionResult(Permission.DENIED, hashMap);
+            else if(listGranted.size() <= 0 && listDenied.size() <= 0 && listRevoked.size() > 0)
+                result.onPermissionResult(Permission.REVOKED, hashMap);
+            else
+                result.onPermissionResult(Permission.UNKNOWN, hashMap);
         }
     }
 
-    //user use to activity
-
-    /**
-     * Check marshmallow ensure permission observable . transformer.
-     *
-     * @param result          the result
-     * @param paramPermission the param permission
-     * @return the observable . transformer
-     */
-    public void checkMEnsureEachPermission(PermissionResult result, String... paramPermission) {
-        Observable.just(null)
-                .compose(ensureEach(paramPermission))
-                .subscribe(permission -> {
-                    result.onPermissionResult(permission.name, permission.granted);
-                });
-    }
-
-    /**
-     * Check m ensure permission.
-     *
-     * @param result          the result
-     * @param paramPermission the param permission
-     */
-    public void checkMEnsurePermission(PermissionResult result, String... paramPermission) {
-        Observable.just(null)
-                .compose(ensure(paramPermission))
-                .subscribe(granted -> {
-                    result.onPermissionResult(Arrays.toString(paramPermission), granted);
-                });
-    }
-
-    /**
-     * Check marshmallow multiple permission.
-     *
-     * @param result          the result
-     * @param paramPermission the param permission
-     */
-    public void checkMPermission(PermissionResult result, String... paramPermission) {
-        request(paramPermission)
-                .subscribe(granted -> {
-                    result.onPermissionResult(Arrays.toString(paramPermission), granted);
-                });
-    }
-
-    /**
-     * Check marshmallow each permission.
-     *
-     * @param result          the result
-     * @param paramPermission the param permission
-     */
-    public void checkMEachPermission(PermissionResult result, String... paramPermission) {
-        requestEach(paramPermission)
-                .subscribe(permission -> {
-                    result.onPermissionResult(permission.name, permission.granted);
-                });
+    private String[] getMargePermission() {
+        String[] data = new String[deniedPermission.length + revokedPermission.length];
+        int i = 0;
+        for (String p: deniedPermission)
+            data[i++] = p;
+        for (String p: revokedPermission)
+            data[i++] = p;
+        return data;
     }
 }

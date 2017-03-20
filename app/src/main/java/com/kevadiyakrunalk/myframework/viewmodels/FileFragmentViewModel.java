@@ -14,10 +14,13 @@ import com.kevadiyakrunalk.myframework.BR;
 import com.kevadiyakrunalk.myframework.R;
 import com.kevadiyakrunalk.rxfilepicker.RxFilePicker;
 import com.kevadiyakrunalk.rxfilepicker.model.FileType;
+import com.kevadiyakrunalk.rxpermissions.Permission;
 import com.kevadiyakrunalk.rxpermissions.PermissionResult;
 import com.kevadiyakrunalk.rxpermissions.RxPermissions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class FileFragmentViewModel extends BaseViewModel {
     private Activity activity;
@@ -94,8 +97,8 @@ public class FileFragmentViewModel extends BaseViewModel {
         RxPermissions.getInstance(activity)
                 .checkMPermission(new PermissionResult() {
                     @Override
-                    public void onPermissionResult(String permission, boolean granted) {
-                        if(granted) {
+                    public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
+                        if(status == Permission.GRANTED) {
                             if(docPaths.size()==MAX_ATTACHMENT_COUNT)
                                 Toast.makeText(activity, "Cannot select more than " + MAX_ATTACHMENT_COUNT + " items", Toast.LENGTH_SHORT).show();
                             else
