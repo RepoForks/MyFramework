@@ -1,26 +1,17 @@
 package com.kevadiyakrunalk.myframework.viewmodels;
 
-import android.Manifest;
 import android.app.Activity;
 import android.databinding.Bindable;
-import android.os.Environment;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.Toast;
 
 import com.kevadiyakrunalk.commonutils.common.Logs;
 import com.kevadiyakrunalk.mvvmarchitecture.common.BaseViewModel;
 import com.kevadiyakrunalk.myframework.BR;
 import com.kevadiyakrunalk.myframework.R;
-import com.kevadiyakrunalk.rxfilepicker.RxFilePicker;
 import com.kevadiyakrunalk.rxfilepicker.model.FileType;
-import com.kevadiyakrunalk.rxpermissions.Permission;
-import com.kevadiyakrunalk.rxpermissions.PermissionResult;
-import com.kevadiyakrunalk.rxpermissions.RxPermissions;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public class FileFragmentViewModel extends BaseViewModel {
     private Activity activity;
@@ -94,7 +85,7 @@ public class FileFragmentViewModel extends BaseViewModel {
     }
 
     public void onFilePick(View view) {
-        RxPermissions.getInstance(activity)
+        /*RxPermissions.getInstance(activity)
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -117,6 +108,6 @@ public class FileFragmentViewModel extends BaseViewModel {
                                         });
                         }
                     }
-                }, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                }, Manifest.permission.WRITE_EXTERNAL_STORAGE);*/
     }
 }

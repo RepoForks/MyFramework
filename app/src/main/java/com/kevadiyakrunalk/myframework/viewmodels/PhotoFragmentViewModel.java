@@ -1,27 +1,12 @@
 package com.kevadiyakrunalk.myframework.viewmodels;
 
-import android.Manifest;
 import android.app.Activity;
-import android.graphics.Bitmap;
-import android.net.Uri;
-import android.os.Environment;
 import android.view.View;
 import android.widget.ImageView;
 
 import com.kevadiyakrunalk.commonutils.common.Logs;
 import com.kevadiyakrunalk.mvvmarchitecture.common.BaseViewModel;
-import com.kevadiyakrunalk.rxpermissions.Permission;
-import com.kevadiyakrunalk.rxpermissions.PermissionResult;
-import com.kevadiyakrunalk.rxpermissions.RxPermissions;
 import com.kevadiyakrunalk.rxphotopicker.CropOption;
-import com.kevadiyakrunalk.rxphotopicker.PhotoInterface;
-import com.kevadiyakrunalk.rxphotopicker.RxPhotoPicker;
-import com.kevadiyakrunalk.rxphotopicker.Sources;
-import com.kevadiyakrunalk.rxphotopicker.Transformers;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
 
 public class PhotoFragmentViewModel extends BaseViewModel {
     private Activity context;
@@ -42,7 +27,7 @@ public class PhotoFragmentViewModel extends BaseViewModel {
         builder.setOutputHW(690, 690);
         builder.setAspectRatio(3, 2);
         builder.setScale(true);
-        RxPermissions.getInstance(context)
+        /*RxPermissions.getInstance(context)
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -60,11 +45,11 @@ public class PhotoFragmentViewModel extends BaseViewModel {
                                     });
                         }
                     }
-                }, Manifest.permission.READ_EXTERNAL_STORAGE);
+                }, Manifest.permission.READ_EXTERNAL_STORAGE);*/
     }
 
     public void onGalleryBitmap(View view) {
-        RxPermissions.getInstance(context)
+        /*RxPermissions.getInstance(context)
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -82,11 +67,11 @@ public class PhotoFragmentViewModel extends BaseViewModel {
                                     });
                         }
                     }
-                }, Manifest.permission.READ_EXTERNAL_STORAGE);
+                }, Manifest.permission.READ_EXTERNAL_STORAGE);*/
     }
 
     public void onGalleryFile(View view) {
-        RxPermissions.getInstance(context)
+        /*RxPermissions.getInstance(context)
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -104,11 +89,11 @@ public class PhotoFragmentViewModel extends BaseViewModel {
                                     }, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));//context.getFilesDir());
                         }
                     }
-                }, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                }, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE);*/
     }
 
     public void onCameraUri(View view) {
-        RxPermissions.getInstance(context)
+        /*RxPermissions.getInstance(context)
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -126,11 +111,11 @@ public class PhotoFragmentViewModel extends BaseViewModel {
                                     });
                         }
                     }
-                }, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA);
+                }, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA);*/
     }
 
     public void onCameraBitmap(View view) {
-        RxPermissions.getInstance(context)
+        /*RxPermissions.getInstance(context)
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -148,11 +133,11 @@ public class PhotoFragmentViewModel extends BaseViewModel {
                                     });
                         }
                     }
-                }, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA);
+                }, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA);*/
     }
 
     public void onCameraFile(View view) {
-        RxPermissions.getInstance(context)
+        /*RxPermissions.getInstance(context)
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -170,11 +155,11 @@ public class PhotoFragmentViewModel extends BaseViewModel {
                                     }, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));//context.getFilesDir());
                         }
                     }
-                }, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA);
+                }, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA);*/
     }
 
     public void onGalleryMultipleUri(View view) {
-        RxPermissions.getInstance(context)
+        /*RxPermissions.getInstance(context)
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -194,11 +179,11 @@ public class PhotoFragmentViewModel extends BaseViewModel {
                                     });
                         }
                     }
-                }, Manifest.permission.READ_EXTERNAL_STORAGE);
+                }, Manifest.permission.READ_EXTERNAL_STORAGE);*/
     }
 
     public void onGalleryMultipleBitmap(View view) {
-        RxPermissions.getInstance(context)
+        /*RxPermissions.getInstance(context)
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -218,11 +203,11 @@ public class PhotoFragmentViewModel extends BaseViewModel {
                                     });
                         }
                     }
-                }, Manifest.permission.READ_EXTERNAL_STORAGE);
+                }, Manifest.permission.READ_EXTERNAL_STORAGE);*/
     }
 
     public void onGalleryMultipleFile(View view) {
-        RxPermissions.getInstance(context)
+        /*RxPermissions.getInstance(context)
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -242,7 +227,7 @@ public class PhotoFragmentViewModel extends BaseViewModel {
                                     }, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));//context.getFilesDir());
                         }
                     }
-                }, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                }, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE);*/
     }
 
     public String fileSize(long size) {

@@ -1,6 +1,5 @@
 package com.kevadiyakrunalk.myframework.fragments;
 
-import android.Manifest;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Address;
@@ -8,16 +7,13 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.ActivityRecognitionResult;
-import com.google.android.gms.location.DetectedActivity;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
@@ -31,11 +27,7 @@ import com.kevadiyakrunalk.myframework.databinding.FragmentLocationBinding;
 import com.kevadiyakrunalk.myframework.navigators.LocationNavigator;
 import com.kevadiyakrunalk.myframework.viewmodels.LocationFragmentViewModel;
 import com.kevadiyakrunalk.rxlocation.ReactiveLocationProvider;
-import com.kevadiyakrunalk.rxpermissions.Permission;
-import com.kevadiyakrunalk.rxpermissions.PermissionResult;
-import com.kevadiyakrunalk.rxpermissions.RxPermissions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import rx.Observable;
@@ -156,7 +148,7 @@ public class LocationFragment extends NavigatingMvvmFragment<LocationNavigator, 
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.add("Geofencing").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        /*menu.add("Geofencing").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 RxPermissions.getInstance(getActivity())
@@ -207,7 +199,7 @@ public class LocationFragment extends NavigatingMvvmFragment<LocationNavigator, 
                         }, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION);
                 return true;
             }
-        });
+        });*/
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -235,7 +227,7 @@ public class LocationFragment extends NavigatingMvvmFragment<LocationNavigator, 
     @Override
     public void onStart() {
         super.onStart();
-        RxPermissions.getInstance(getActivity())
+        /*RxPermissions.getInstance(getActivity())
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -327,7 +319,7 @@ public class LocationFragment extends NavigatingMvvmFragment<LocationNavigator, 
                                     }, new ErrorHandler());
                         }
                     }
-                }, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION);
+                }, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION);*/
     }
 
     @Override

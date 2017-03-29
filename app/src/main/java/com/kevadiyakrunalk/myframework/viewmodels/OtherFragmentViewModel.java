@@ -1,31 +1,13 @@
 package com.kevadiyakrunalk.myframework.viewmodels;
 
-import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.PorterDuff;
-import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.kevadiyakrunalk.commonutils.common.Compressor;
 import com.kevadiyakrunalk.commonutils.common.DrawableColorChange;
 import com.kevadiyakrunalk.commonutils.common.Logs;
 import com.kevadiyakrunalk.mvvmarchitecture.common.BaseViewModel;
 import com.kevadiyakrunalk.myframework.R;
-import com.kevadiyakrunalk.rxpermissions.Permission;
-import com.kevadiyakrunalk.rxpermissions.PermissionResult;
-import com.kevadiyakrunalk.rxpermissions.RxPermissions;
-import com.kevadiyakrunalk.rxphotopicker.PhotoInterface;
-import com.kevadiyakrunalk.rxphotopicker.RxPhotoPicker;
-import com.kevadiyakrunalk.rxphotopicker.Sources;
-import com.kevadiyakrunalk.rxphotopicker.Transformers;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-
-import rx.functions.Action1;
 
 /**
  * Created by Krunal.Kevadiya on 24/10/16.
@@ -58,7 +40,7 @@ public class OtherFragmentViewModel extends BaseViewModel {
     }
 
     public void onGalleryFile(View view) {
-        RxPermissions.getInstance(context)
+        /*RxPermissions.getInstance(context)
                 .checkMPermission(new PermissionResult() {
                     @Override
                     public void onPermissionResult(Permission status, HashMap<Permission, List<String>> value) {
@@ -82,6 +64,6 @@ public class OtherFragmentViewModel extends BaseViewModel {
                                     }, context.getFilesDir());
                         }
                     }
-                }, Manifest.permission.READ_EXTERNAL_STORAGE);
+                }, Manifest.permission.READ_EXTERNAL_STORAGE);*/
     }
 }
